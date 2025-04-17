@@ -1,0 +1,65 @@
+---
+- name: Make Xray directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  loop:
+    - "{{ xray_dir }}"
+    - /etc/systemd/system/xray@.service.d
+    - /etc/systemd/system/xray.service.d
+    - /var/log/xray
+
+- name: Download Xray Linux binary
+  get_url:
+    url: "https://github.com/XTLS/Xray-core/releases/download/{{ xray_version }}/Xray-linux-64.zip"
+    dest: "/tmp/Xray-linux-64.zip"
+    mode: 0644
+
+- name: Extract Xray binary
+  unarchive:
+    src: "/tmp/Xray-linux-64.zip"
+    dest: "{{ xray_dir }}"
+    remote_src: true
+
+- name: Check if config.json exists
+  become: false
+  stat:
+    path: "{{ role_path }}/files/config.json"
+  register: xray_config
+  delegate_to: localhost
+
+- name: Copy Xray custom config
+  copy:
+    src: files/config.json
+    dest: "{{ xray_dir }}/config.json"
+    owner: root
+    group: root
+    mode: 0644
+  when: xray_config.stat.exists
+
+- name: Copy Xray default config
+  copy:
+    src: files/default.json
+    dest: "{{ xray_dir }}/config.json"
+    owner: root
+    group: root
+    mode: 0644
+  when: not xray_config.stat.exists
+
+- name: Create Xray systemd service
+  template:
+    src: xray.service.j2
+    dest: /etc/systemd/system/xray.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Enable xray
+
+- name: Delete Xray downloaded zip file
+  file:
+    path: "/tmp/Xray-linux-64.zip"
+    state: absent

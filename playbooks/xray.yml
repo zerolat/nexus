@@ -1,0 +1,8 @@
+---
+- name: Configure Xray
+  hosts: all
+  strategy: free
+  become: true
+  roles:
+    - { role: packages, tags: packages }
+    - { role: xray, tags: xray }

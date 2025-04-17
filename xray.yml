@@ -1,0 +1,3 @@
+---
+- name: Setup Xray
+  ansible.builtin.import_playbook: playbooks/xray.yml

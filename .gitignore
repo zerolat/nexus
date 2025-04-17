@@ -1,0 +1,16 @@
+# Ansible inventory
+inventory/*
+
+# dotenv
+.env
+
+# virtualenv
+.venv/
+venv/
+ENV/
+
+# macOS
+.DS_Store
+
+# Xray
+config.json
